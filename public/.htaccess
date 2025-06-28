@@ -1,0 +1,10 @@
+# Habilitar o módulo de reescrita de URL
+RewriteEngine On
+
+# Permitir acesso direto aos arquivos CSS, JS e imagens
+RewriteRule ^(assets|uploads)/ - [L]
+
+# Redirecionar todas as outras requisições para o index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?a=$1 [QSA,L] 

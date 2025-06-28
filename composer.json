@@ -1,0 +1,23 @@
+{
+    "name": "danielsalvador124/1_loja",
+    "description": "Loja Online em PHP",
+    "type": "project",
+    "license": "1337",
+    "autoload": {
+        "psr-4": {
+            "danielsalvador124\\1Loja\\": "src/",
+            "core\\": "core/"
+        },
+        "files": [
+            "config.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Daniel"
+        }
+    ],
+    "require": {
+        "phpmailer/phpmailer": "^6.9"
+    }
+}

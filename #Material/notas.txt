@@ -1,0 +1,71 @@
+//php -S localhost:80 -t public
+
+//*******************************************************************************
+// db cliente
+ALTER TABLE `php_store`.`clientes` 
+ADD COLUMN `senha` VARCHAR(250) NULL AFTER `email`,
+ADD COLUMN `nome_completo` VARCHAR(250) NULL AFTER `senha`,
+ADD COLUMN `morada` VARCHAR(250) NULL AFTER `nome_completo`,
+ADD COLUMN `cidade` VARCHAR(50) NULL AFTER `morada`,
+ADD COLUMN `telefone` VARCHAR(50) NULL AFTER `cidade`,
+ADD COLUMN `purl` VARCHAR(50) NULL AFTER `telefone`,
+ADD COLUMN `activo` TINYINT(1) NULL DEFAULT 0 AFTER `purl`,
+ADD COLUMN `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP AFTER `activo`,
+ADD COLUMN `updated_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER `created_at`,
+ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL AFTER `updated_at`,
+CHANGE COLUMN `id_cliente` `id_cliente` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+CHANGE COLUMN `nome` `email` VARCHAR(50) CHARACTER SET 'utf8mb4' NULL DEFAULT NULL;
+
+
+
+//*******************************************************************************
+// db admin
+CREATE TABLE `admins` (
+	`id_admin` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`utilizador` VARCHAR(50) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+	`senha` VARCHAR(200) NULL DEFAULT NULL COLLATE 'utf8mb4_general_ci',
+	`created_at` DATETIME NULL DEFAULT NULL,
+	`updated_at` DATETIME NULL DEFAULT NULL,
+	`deleted_at` DATETIME NULL DEFAULT NULL,
+	PRIMARY KEY (`id_admin`) USING BTREE
+)
+COLLATE='utf8mb4_general_ci'
+ENGINE=InnoDB
+AUTO_INCREMENT=2
+;
+
+// config para mexer
+<?php
+define("APP_NAME", "PROJETO Daniel");
+define("APP_VERSION", "1.0.0");
+
+
+// MYSQL 
+define("MYSQL_SERVER", "");
+define("MYSQL_DATABASE", "");
+define("MYSQL_USER", "");
+define("MYSQL_PASS", "");
+define('MYSQL_CHARSET', '');
+
+// EMAIL
+
+define("EMAIL_HOST", "");
+define("EMAIL_FROM", "");
+define("EMAIL_PASS", "");
+define("EMAIL_PORT", 465);
+define('BASE_URL', 'http://localhost/');
+
+
+
+
+
+Tirar o transform dos containers quando das hover no admin tambem
+melhorar o header 
+no admin criar a pagina de adicionar/ver/editar produtos, pedidos
+o cliente conseguir ver os pedidos 
+ver o container do finalizar a compra 
+adicionar o logo no header
+
+
+
+php -S localhost:80 -t public
