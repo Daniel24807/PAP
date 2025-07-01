@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS `clientes` (
 -- A despejar dados para tabela php_store.clientes: ~2 rows (aproximadamente)
 INSERT INTO `clientes` (`id_cliente`, `email`, `senha`, `nome_completo`, `morada`, `cidade`, `telefone`, `purl`, `activo`, `created_at`, `updated_at`, `deleted_at`, `reset_token`, `reset_token_expira`) VALUES
 	(11, 'blablablableblebleblublubluabulubububub@gmail.com', '$2y$10$vCrzhOuiQoho0k9d/vQvaO8X16r.xaqhH3/.KYjCe9txMiWX19loO', 'Daniel', 'Rua da Oliveira', 'Olhão', '939495969', 'lt28sAFFLoH0', 1, '2025-04-12 18:59:08', '2025-04-12 21:44:58', NULL, NULL, NULL),
-	(14, 'teste@teste.com', '$2y$10$wH6Qw1Qw1Qw1Qw1Qw1Qw1uQw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Q', 'Usuário Teste', 'Rua Exemplo, 123', 'Cidade Exemplo', '999999999', NULL, 1, '2025-06-26 17:01:00', '2025-06-26 17:01:00', NULL, NULL, NULL),
+	(14, 'teste@teste.com', '$2y$10$wH6Qw1Qw1Qw1Qw1Qw1Qw1uQw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Qw1Q', 'Utilizador Teste', 'Rua Exemplo, 123', 'Cidade Exemplo', '999999999', NULL, 1, '2025-06-26 17:01:00', '2025-06-26 17:01:00', NULL, NULL, NULL),
 	(15, 'daniel.salvador.2408@gmail.com', '$2y$10$5xW60vS.AbbdQbPS6dGd/.Sm4ZF6/2yxfLB0d1Vo6aq7PcCL5RK3K', 'Daniel Salvador', 'Rua da Cerca', 'Olhão', '963228574', NULL, 1, '2025-06-26 20:20:28', '2025-06-26 22:12:59', NULL, NULL, NULL);
 
 -- A despejar estrutura para tabela php_store.produtos

@@ -120,58 +120,82 @@ class AdminModel
     
     public function atualizar_email($id_admin, $novo_email)
     {
-        $bd = new Database();
-        
-        // Validar o formato do email
-        if (!filter_var($novo_email, FILTER_VALIDATE_EMAIL)) {
-            throw new Exception("O formato do email é inválido.");
-        }
-        
-        // Verificar se o email já existe para outro admin
-        $parametros = [
-            ':utilizador' => strtolower(trim($novo_email)),
-            ':id_admin' => $id_admin
-        ];
-
-        $resultados = $bd->select("SELECT * FROM admins WHERE utilizador = :utilizador AND id_admin != :id_admin", $parametros);
-        if (is_array($resultados) && count($resultados) > 0) {
-            throw new Exception("Este email já está sendo usado por outro administrador.");
-        }
-
-        // Atualizar o email
-        $parametros = [
-            ':id_admin' => $id_admin,
-            ':utilizador' => strtolower(trim($novo_email))
-        ];
-
-        $bd->update("UPDATE admins SET 
-            utilizador = :utilizador,
-            updated_at = NOW()
-            WHERE id_admin = :id_admin", $parametros);
+        try {
+            $bd = new Database();
             
-        // Atualizar a sessão com o novo email
-        $_SESSION['admin_utilizador'] = strtolower(trim($novo_email));
+            // Validar o formato do email
+            if (!filter_var($novo_email, FILTER_VALIDATE_EMAIL)) {
+                throw new Exception("O formato do email é inválido.");
+            }
+            
+            // Verificar se o email já existe para outro admin
+            $parametros = [
+                ':utilizador' => strtolower(trim($novo_email)),
+                ':id_admin' => $id_admin
+            ];
+
+            $resultados = $bd->select("SELECT * FROM admins WHERE utilizador = :utilizador AND id_admin != :id_admin", $parametros);
+            if (is_array($resultados) && count($resultados) > 0) {
+                throw new Exception("Este email já está sendo usado por outro administrador.");
+            }
+
+            // Atualizar o email
+            $parametros = [
+                ':id_admin' => $id_admin,
+                ':utilizador' => strtolower(trim($novo_email))
+            ];
+
+            $resultado = $bd->update("UPDATE admins SET 
+                utilizador = :utilizador,
+                updated_at = NOW()
+                WHERE id_admin = :id_admin", $parametros);
+                
+            if ($resultado === false) {
+                error_log("Erro ao atualizar email: Nenhuma linha afetada para id_admin=$id_admin");
+                return false;
+            }
+            
+            // Atualizar a sessão com o novo email
+            $_SESSION['admin_utilizador'] = strtolower(trim($novo_email));
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Erro na atualização do email: " . $e->getMessage());
+            throw $e;
+        }
     }
     
     public function atualizar_senha($id_admin, $nova_senha)
     {
-        $bd = new Database();
-        
-        // Validar o tamanho da senha
-        if (strlen($nova_senha) < 6) {
-            throw new Exception("A nova senha deve ter no mínimo 6 caracteres.");
+        try {
+            $bd = new Database();
+            
+            // Validar o tamanho da senha
+            if (strlen($nova_senha) < 6) {
+                throw new Exception("A nova senha deve ter no mínimo 6 caracteres.");
+            }
+
+            // Atualizar a senha
+            $parametros = [
+                ':id_admin' => $id_admin,
+                ':senha' => password_hash($nova_senha, PASSWORD_DEFAULT)
+            ];
+
+            $resultado = $bd->update("UPDATE admins SET 
+                senha = :senha,
+                updated_at = NOW()
+                WHERE id_admin = :id_admin", $parametros);
+            
+            if ($resultado === false) {
+                error_log("Erro ao atualizar senha: Nenhuma linha afetada para id_admin=$id_admin");
+                return false;
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Erro na atualização da senha: " . $e->getMessage());
+            throw $e;
         }
-
-        // Atualizar a senha
-        $parametros = [
-            ':id_admin' => $id_admin,
-            ':senha' => password_hash($nova_senha, PASSWORD_DEFAULT)
-        ];
-
-        $bd->update("UPDATE admins SET 
-            senha = :senha,
-            updated_at = NOW()
-            WHERE id_admin = :id_admin", $parametros);
     }
 
     public function buscar_admin_por_id($id_admin)

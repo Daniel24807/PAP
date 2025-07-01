@@ -44,9 +44,18 @@
                         <div class="product-card">
                             <div class="product-image">
                                 <?php if(!empty($produto->imagem)): ?>
-                                    <img src="public/assets/images/produtos/<?= $produto->imagem ?>" alt="<?= $produto->nome ?>" class="img-fluid">
+                                    <?php
+                                    // Verificar o formato do caminho da imagem
+                                    $imagem = $produto->imagem;
+                                    
+                                    // Se o caminho já incluir "assets/images", usar o caminho completo
+                                    if (strpos($imagem, 'assets/images/') !== false) {
+                                        $caminho_imagem = "public/assets/images/produtos/{$imagem}";
+                                    } 
+                                    ?>
+                                    <img src="<?= $caminho_imagem ?>" alt="<?= $produto->nome ?>" class="img-fluid">
                                 <?php else: ?>
-                                    <img src="public/assets/images/produtos/no-image.png" alt="Sem imagem" class="img-fluid">
+                                    <img src="public/assets/images/no-image.png" alt="Sem imagem" class="img-fluid">
                                 <?php endif; ?>
                             </div>
                             <div class="product-content">

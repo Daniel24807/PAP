@@ -12,9 +12,23 @@ if (!isset($produto)) {
         <div class="col-md-6">
             <div class="product-image-container">
                 <?php if(!empty($produto->imagem)): ?>
-                    <img src="public/assets/images/produtos/<?= $produto->imagem ?>" alt="<?= $produto->nome ?>" class="img-fluid rounded shadow">
+                    <?php
+                    // Verificar o formato do caminho da imagem
+                    $imagem = $produto->imagem;
+                    
+                    // Se o caminho já incluir "assets/images", usar o caminho completo
+                    if (strpos($imagem, 'assets/images/') !== false) {
+                        $partes = explode('assets/images/', $imagem);
+                        $nome_arquivo = end($partes);
+                        $caminho_imagem = "public/assets/images/produtos_loja/{$nome_arquivo}";
+                    } else {
+                        // Caso contrário, usar o nome do arquivo diretamente
+                        $caminho_imagem = "public/assets/images/produtos_loja/{$imagem}";
+                    }
+                    ?>
+                    <img src="<?= $caminho_imagem ?>" alt="<?= $produto->nome ?>" class="img-fluid rounded shadow">
                 <?php else: ?>
-                    <img src="public/assets/images/produtos/no-image.png" alt="Sem imagem" class="img-fluid rounded shadow">
+                    <img src="public/assets/images/no-image.png" alt="Sem imagem" class="img-fluid rounded shadow">
                 <?php endif; ?>
             </div>
         </div>

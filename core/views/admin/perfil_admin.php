@@ -234,16 +234,17 @@ if (document.getElementById('form_senha')) {
                 });
                 
                 // Fazer a requisição AJAX
-                fetch('?a=atualizar_perfil_admin&tipo=senha', {
+                fetch('?a=atualizar_perfil_admin&tipo=senha&ajax=1', {
                     method: 'POST',
                     body: formData
                 })
-                .then(response => {
-                    if (response.ok) {
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Sucesso!',
-                            text: 'Senha alterada com sucesso!'
+                            text: data.message || 'Senha alterada com sucesso!'
                         }).then(() => {
                             window.location.href = '?a=perfil_admin';
                         });
@@ -251,7 +252,7 @@ if (document.getElementById('form_senha')) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Erro!',
-                            text: 'Não foi possível alterar a senha. Tente novamente.'
+                            text: data.message || 'Não foi possível alterar a senha. Tente novamente.'
                         });
                     }
                 })
@@ -300,16 +301,17 @@ if (document.getElementById('form_email')) {
                 });
                 
                 // Fazer a requisição AJAX
-                fetch('?a=atualizar_perfil_admin&tipo=email', {
+                fetch('?a=atualizar_perfil_admin&tipo=email&ajax=1', {
                     method: 'POST',
                     body: formData
                 })
-                .then(response => {
-                    if (response.ok) {
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Sucesso!',
-                            text: 'Email alterado com sucesso!'
+                            text: data.message || 'Email alterado com sucesso!'
                         }).then(() => {
                             window.location.href = '?a=perfil_admin';
                         });
@@ -317,7 +319,7 @@ if (document.getElementById('form_email')) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Erro!',
-                            text: 'Não foi possível alterar o email. Tente novamente.'
+                            text: data.message || 'Não foi possível alterar o email. Tente novamente.'
                         });
                     }
                 })

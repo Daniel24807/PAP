@@ -193,16 +193,13 @@ class Pedidos
     {
         $db = new Database();
         
-        $pedidos = $db->select("
-            SELECT p.id_pedido, p.codigo_pedido, p.status, p.total, p.data_pedido, 
-                   p.id_cliente, p.endereco, p.cidade,
-                   c.nome
-            FROM pedidos p
-            INNER JOIN clientes c ON p.id_cliente = c.id_cliente
-            ORDER BY p.data_pedido DESC
-        ");
+        // Consulta SQL simples para obter todos os pedidos com o nome do cliente
+        $sql = "SELECT p.*, c.nome_completo 
+                FROM pedidos p 
+                LEFT JOIN clientes c ON p.id_cliente = c.id_cliente 
+                ORDER BY p.data_pedido DESC";
         
-        return $pedidos;
+        return $db->select($sql);
     }
     
     /**
@@ -233,17 +230,69 @@ class Pedidos
     {
         $db = new Database();
         
+        // Primeiro, buscar os IDs dos clientes que correspondem ao nome
         $params = [':nome' => '%' . $nome . '%'];
-        $pedidos = $db->select("
-            SELECT p.id_pedido, p.codigo_pedido, p.status, p.total, p.data_pedido,
-                   p.id_cliente, p.endereco, p.cidade,
-                   c.nome, c.email
-            FROM pedidos p
-            INNER JOIN clientes c ON p.id_cliente = c.id_cliente
-            WHERE c.nome LIKE :nome
-            ORDER BY p.data_pedido DESC
+        $clientes = $db->select("
+            SELECT id_cliente, nome_completo 
+            FROM clientes 
+            WHERE nome_completo LIKE :nome
         ", $params);
         
+        if (empty($clientes)) {
+            return [];
+        }
+        
+        // Extrair os IDs dos clientes
+        $ids_clientes = [];
+        $mapa_clientes = [];
+        foreach ($clientes as $cliente) {
+            $ids_clientes[] = $cliente->id_cliente;
+            $mapa_clientes[$cliente->id_cliente] = $cliente->nome_completo;
+        }
+        
+        // Criar placeholders para a consulta IN
+        $placeholders = implode(',', array_fill(0, count($ids_clientes), '?'));
+        
+        // Buscar pedidos dos clientes encontrados
+        $params = $ids_clientes;
+        $sql = "
+            SELECT * 
+            FROM pedidos 
+            WHERE id_cliente IN ($placeholders)
+            ORDER BY data_pedido DESC
+        ";
+        
+        $pedidos = $db->select($sql, $params);
+        
+        if (empty($pedidos)) {
+            return [];
+        }
+        
+        // Adicionar o nome do cliente a cada pedido
+        foreach ($pedidos as &$pedido) {
+            if (isset($mapa_clientes[$pedido->id_cliente])) {
+                $pedido->nome = $mapa_clientes[$pedido->id_cliente];
+            } else {
+                $pedido->nome = "Cliente #" . $pedido->id_cliente;
+            }
+        }
+        
         return $pedidos;
+    }
+    
+    /**
+     * Contar o número total de pedidos
+     */
+    public function contar_pedidos()
+    {
+        $db = new Database();
+        
+        $resultado = $db->select("SELECT COUNT(*) as total FROM pedidos");
+        
+        if ($resultado && isset($resultado[0]->total)) {
+            return $resultado[0]->total;
+        }
+        
+        return 0;
     }
 } 

@@ -20,7 +20,7 @@
         // Inicialização do DataTables para tabelas simples
         $(document).ready(function() {
             // Verifica se a tabela não tem ID específico antes de aplicar o DataTable genérico
-            $('.table:not(#tabelaPedidos)').DataTable({
+            $('.table:not(#tabelaProdutos):not(#tabelaPedidos)').DataTable({
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.11.5/i18n/pt-BR.json'
                 }

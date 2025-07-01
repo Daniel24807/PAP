@@ -228,7 +228,7 @@ class Admin
     private function isAjaxRequest() {
         return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
                 strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ||
-               isset($_GET['ajax']);
+               isset($_GET['ajax']) || isset($_POST['ajax']);
     }
 
     // Função para enviar resposta em formato JSON para requisições AJAX
@@ -258,82 +258,122 @@ class Admin
         
         // Atualizar senha
         if ($tipo == 'senha') {
-            // Buscar dados
-            $senha_atual = trim($_POST['text_senha_atual']);
-            $nova_senha = trim($_POST['text_nova_senha']);
-            $conf_nova_senha = trim($_POST['text_confirmar_senha']);
-            
-            // Verificar se a senha atual está correta
-            $admin = new AdminModel();
-            if (!$admin->validar_senha($_SESSION['admin'], $senha_atual)) {
+            try {
+                // Buscar dados
+                $senha_atual = trim($_POST['text_senha_atual']);
+                $nova_senha = trim($_POST['text_nova_senha']);
+                $conf_nova_senha = trim($_POST['text_confirmar_senha']);
+                
+                // Verificar se a senha atual está correta
+                $admin = new AdminModel();
+                if (!$admin->validar_senha($_SESSION['admin'], $senha_atual)) {
+                    if ($this->isAjaxRequest()) {
+                        $this->sendJsonResponse(false, 'A senha atual está incorreta.');
+                    } else {
+                        $_SESSION['erro'] = 'A senha atual está incorreta.';
+                        Store::redirect('perfil_admin&tab=senha', true);
+                    }
+                    return;
+                }
+                
+                // Verificar se as senhas novas coincidem
+                if ($nova_senha != $conf_nova_senha) {
+                    if ($this->isAjaxRequest()) {
+                        $this->sendJsonResponse(false, 'As senhas não coincidem.');
+                    } else {
+                        $_SESSION['erro'] = 'As senhas não coincidem.';
+                        Store::redirect('perfil_admin&tab=senha', true);
+                    }
+                    return;
+                }
+                
+                // Atualizar senha
+                $resultado = $admin->atualizar_senha($_SESSION['admin'], $nova_senha);
+                
+                if ($resultado === false) {
+                    if ($this->isAjaxRequest()) {
+                        $this->sendJsonResponse(false, 'Erro ao atualizar a senha no banco de dados.');
+                    } else {
+                        $_SESSION['erro'] = 'Erro ao atualizar a senha no banco de dados.';
+                        Store::redirect('perfil_admin&tab=senha', true);
+                    }
+                    return;
+                }
+                
                 if ($this->isAjaxRequest()) {
-                    $this->sendJsonResponse(false, 'A senha atual está incorreta.');
+                    $this->sendJsonResponse(true, 'Senha alterada com sucesso.');
                 } else {
-                    $_SESSION['erro'] = 'A senha atual está incorreta.';
+                    $_SESSION['sucesso'] = 'Senha alterada com sucesso.';
+                    Store::redirect('perfil_admin', true);
+                }
+            } catch (Exception $e) {
+                if ($this->isAjaxRequest()) {
+                    $this->sendJsonResponse(false, $e->getMessage());
+                } else {
+                    $_SESSION['erro'] = $e->getMessage();
                     Store::redirect('perfil_admin&tab=senha', true);
                 }
                 return;
-            }
-            
-            // Verificar se as senhas novas coincidem
-            if ($nova_senha != $conf_nova_senha) {
-                if ($this->isAjaxRequest()) {
-                    $this->sendJsonResponse(false, 'As senhas não coincidem.');
-                } else {
-                    $_SESSION['erro'] = 'As senhas não coincidem.';
-                    Store::redirect('perfil_admin&tab=senha', true);
-                }
-                return;
-            }
-            
-            // Atualizar senha
-            $admin->atualizar_senha($_SESSION['admin'], $nova_senha);
-            
-            if ($this->isAjaxRequest()) {
-                $this->sendJsonResponse(true, 'Senha alterada com sucesso.');
-            } else {
-                $_SESSION['sucesso'] = 'Senha alterada com sucesso.';
-                Store::redirect('perfil_admin', true);
             }
         }
         
         // Atualizar email
         else if ($tipo == 'email') {
-            // Buscar dados
-            $senha_atual = trim($_POST['text_senha_atual']);
-            $novo_email = trim($_POST['text_utilizador']);
-            
-            // Verificar se o novo email é válido
-            if (!filter_var($novo_email, FILTER_VALIDATE_EMAIL)) {
+            try {
+                // Buscar dados
+                $senha_atual = trim($_POST['text_senha_atual']);
+                $novo_email = trim($_POST['text_utilizador']);
+                
+                // Verificar se o novo email é válido
+                if (!filter_var($novo_email, FILTER_VALIDATE_EMAIL)) {
+                    if ($this->isAjaxRequest()) {
+                        $this->sendJsonResponse(false, 'O email informado não é válido.');
+                    } else {
+                        $_SESSION['erro'] = 'O email informado não é válido.';
+                        Store::redirect('perfil_admin&tab=email', true);
+                    }
+                    return;
+                }
+                
+                // Verificar se a senha está correta
+                $admin = new AdminModel();
+                if (!$admin->validar_senha($_SESSION['admin'], $senha_atual)) {
+                    if ($this->isAjaxRequest()) {
+                        $this->sendJsonResponse(false, 'A senha atual está incorreta.');
+                    } else {
+                        $_SESSION['erro'] = 'A senha atual está incorreta.';
+                        Store::redirect('perfil_admin&tab=email', true);
+                    }
+                    return;
+                }
+                
+                // Atualizar email
+                $resultado = $admin->atualizar_email($_SESSION['admin'], $novo_email);
+                
+                if ($resultado === false) {
+                    if ($this->isAjaxRequest()) {
+                        $this->sendJsonResponse(false, 'Erro ao atualizar o email no banco de dados.');
+                    } else {
+                        $_SESSION['erro'] = 'Erro ao atualizar o email no banco de dados.';
+                        Store::redirect('perfil_admin&tab=email', true);
+                    }
+                    return;
+                }
+                
                 if ($this->isAjaxRequest()) {
-                    $this->sendJsonResponse(false, 'O email informado não é válido.');
+                    $this->sendJsonResponse(true, 'Email alterado com sucesso.');
                 } else {
-                    $_SESSION['erro'] = 'O email informado não é válido.';
+                    $_SESSION['sucesso'] = 'Email alterado com sucesso.';
+                    Store::redirect('perfil_admin', true);
+                }
+            } catch (Exception $e) {
+                if ($this->isAjaxRequest()) {
+                    $this->sendJsonResponse(false, $e->getMessage());
+                } else {
+                    $_SESSION['erro'] = $e->getMessage();
                     Store::redirect('perfil_admin&tab=email', true);
                 }
                 return;
-            }
-            
-            // Verificar se a senha está correta
-            $admin = new AdminModel();
-            if (!$admin->validar_senha($_SESSION['admin'], $senha_atual)) {
-                if ($this->isAjaxRequest()) {
-                    $this->sendJsonResponse(false, 'A senha atual está incorreta.');
-                } else {
-                    $_SESSION['erro'] = 'A senha atual está incorreta.';
-                    Store::redirect('perfil_admin&tab=email', true);
-                }
-                return;
-            }
-            
-            // Atualizar email
-            $admin->atualizar_email($_SESSION['admin'], $novo_email);
-            
-            if ($this->isAjaxRequest()) {
-                $this->sendJsonResponse(true, 'Email alterado com sucesso.');
-            } else {
-                $_SESSION['sucesso'] = 'Email alterado com sucesso.';
-                Store::redirect('perfil_admin', true);
             }
         }
         
@@ -541,7 +581,7 @@ class Admin
     public function produtos() {
         // Verifica se é admin
         if (!Store::adminLogado()) {
-            Store::redirect('inicio');
+            Store::redirect('admin_login', true);
             return;
         }
 
@@ -666,13 +706,20 @@ class Admin
     public function produto_atualizar() {
         // Verifica se é admin
         if (!Store::adminLogado()) {
-            Store::redirect('inicio');
+            Store::redirect('admin_login', true);
             return;
         }
 
         // Verifica se houve submissão de formulário
         if ($_SERVER['REQUEST_METHOD'] != 'POST') {
-            Store::redirect('admin_produtos');
+            Store::redirect('admin_produtos', true);
+            return;
+        }
+
+        // Verificar se o id do produto foi fornecido
+        if (!isset($_POST['id_produto']) || !is_numeric($_POST['id_produto'])) {
+            $_SESSION['erro'] = 'ID do produto inválido!';
+            Store::redirect('admin_produtos', true);
             return;
         }
 
@@ -685,9 +732,14 @@ class Admin
             $produtos = new Produtos();
             $produto_atual = $produtos->get_produto($_POST['id_produto']);
             if ($produto_atual && $produto_atual->imagem) {
-                $caminho_antigo = 'assets/images/produtos/' . $produto_atual->imagem;
-                if (file_exists($caminho_antigo)) {
-                    unlink($caminho_antigo);
+                // Verifica em qual diretório a imagem está
+                $caminho_produtos = '../../public/assets/images/produtos/' . $produto_atual->imagem;
+                $caminho_gyeon = '../../public/assets/images/gyeon/' . $produto_atual->imagem;
+                
+                if (file_exists($caminho_produtos)) {
+                    unlink($caminho_produtos);
+                } elseif (file_exists($caminho_gyeon)) {
+                    unlink($caminho_gyeon);
                 }
             }
         }
@@ -696,51 +748,85 @@ class Admin
         $dados = [
             'nome' => $_POST['nome'],
             'descricao' => $_POST['descricao'],
-            'preco' => $_POST['preco'],
-            'stock' => $_POST['stock'],
-            'id_categoria' => $_POST['id_categoria']
+            'preco' => str_replace(',', '.', $_POST['preco']), // Garantir formato correto
+            'stock' => (int)$_POST['stock'],
+            'id_categoria' => $_POST['id_categoria'] ?: null // Permite categoria null
         ];
 
         if ($imagem) {
             $dados['imagem'] = $imagem;
         }
 
-        // Atualizar o produto
-        $produtos = new Produtos();
-        $produtos->atualizar_produto($_POST['id_produto'], $dados);
+        try {
+            // Atualizar o produto
+            $produtos = new Produtos();
+            $resultado = $produtos->atualizar_produto($_POST['id_produto'], $dados);
+            
+            if ($resultado) {
+                $_SESSION['sucesso'] = 'Produto atualizado com sucesso!';
+            } else {
+                $_SESSION['erro'] = 'Erro ao atualizar o produto.';
+            }
+        } catch (\Exception $e) {
+            $_SESSION['erro'] = 'Erro ao atualizar o produto: ' . $e->getMessage();
+        }
 
-        Store::redirect('admin_produtos');
+        Store::redirect('admin_produtos', true);
     }
 
     public function produto_eliminar() {
         // Verifica se é admin
         if (!Store::adminLogado()) {
-            Store::redirect('inicio');
+            Store::redirect('admin_login', true);
             return;
         }
 
         // Verifica se existe ID
-        if (!isset($_GET['id'])) {
-            Store::redirect('admin_produtos');
+        if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+            $_SESSION['erro'] = 'ID do produto inválido!';
+            Store::redirect('admin_produtos', true);
             return;
         }
 
-        // Busca o produto para pegar o nome da imagem
-        $produtos = new Produtos();
-        $produto = $produtos->get_produto($_GET['id']);
+        $id_produto = $_GET['id'];
 
-        // Se o produto tiver imagem, exclui ela
-        if ($produto && $produto->imagem) {
-            $caminho = 'assets/images/produtos/' . $produto->imagem;
-            if (file_exists($caminho)) {
-                unlink($caminho);
+        try {
+            // Busca o produto para pegar o nome da imagem
+            $produtos = new Produtos();
+            $produto = $produtos->get_produto($id_produto);
+
+            if (!$produto) {
+                $_SESSION['erro'] = 'Produto não encontrado!';
+                Store::redirect('admin_produtos', true);
+                return;
             }
+
+            // Se o produto tiver imagem, exclui ela
+            if ($produto && $produto->imagem) {
+                // Verifica em qual diretório a imagem está
+                $caminho_produtos = '../../public/assets/images/produtos/' . $produto->imagem;
+                $caminho_gyeon = '../../public/assets/images/gyeon/' . $produto->imagem;
+                
+                if (file_exists($caminho_produtos)) {
+                    unlink($caminho_produtos);
+                } elseif (file_exists($caminho_gyeon)) {
+                    unlink($caminho_gyeon);
+                }
+            }
+
+            // Elimina o produto
+            $resultado = $produtos->eliminar_produto($id_produto);
+            
+            if ($resultado) {
+                $_SESSION['sucesso'] = 'Produto excluído com sucesso!';
+            } else {
+                $_SESSION['erro'] = 'Erro ao excluir o produto.';
+            }
+        } catch (\Exception $e) {
+            $_SESSION['erro'] = 'Erro ao excluir o produto: ' . $e->getMessage();
         }
 
-        // Elimina o produto
-        $produtos->eliminar_produto($_GET['id']);
-
-        Store::redirect('admin_produtos');
+        Store::redirect('admin_produtos', true);
     }
 
     // ========== CATEGORIAS ==========
@@ -893,7 +979,13 @@ class Admin
         $nome_arquivo = md5(uniqid(rand(), true)) . '.' . $extensao;
 
         // Define o caminho onde a imagem será salva
-        $caminho = 'assets/images/produtos/' . $nome_arquivo;
+        $caminho = '../../public/assets/images/produtos/' . $nome_arquivo;
+        
+        // Verifica se o diretório existe, se não, cria
+        $diretorio = '../../public/assets/images/produtos/';
+        if (!is_dir($diretorio)) {
+            mkdir($diretorio, 0777, true);
+        }
 
         // Move o arquivo para o destino
         if (move_uploaded_file($file['tmp_name'], $caminho)) {
@@ -938,30 +1030,21 @@ class Admin
         }
         
         // Carregar modelo de pedidos
-        require_once(__DIR__ . '/../models/Pedidos.php');
         $pedidos_model = new \core\models\Pedidos();
         
-        // Verificar se existe uma pesquisa
-        $pesquisa = isset($_GET['pesquisa']) ? trim($_GET['pesquisa']) : '';
-        
-        // Obter pedidos (todos ou filtrados por nome)
-        if (!empty($pesquisa)) {
-            $pedidos = $pedidos_model->buscar_pedidos_por_nome($pesquisa);
-        } else {
-            $pedidos = $pedidos_model->listar_todos_pedidos();
-        }
+        // Obter todos os pedidos
+        $pedidos = $pedidos_model->listar_todos_pedidos();
         
         // Enviar dados para a view
         $data = [
-            'pedidos' => $pedidos,
-            'pesquisa' => $pesquisa
+            'pedidos' => $pedidos
         ];
         
         // Carregar o layout do Backoffice
         Store::Layout_Admin([
             'layouts/html_header',
             'layouts/header',
-            'listar_pedidos', // View para listar pedidos
+            'listar_pedidos',
             'layouts/footer',
             'layouts/html_footer',
         ], $data);

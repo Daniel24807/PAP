@@ -48,20 +48,42 @@ class Database
         $resultado = null;
 
         try {
-            //Comuinicacao com a bd
+            //Comunicacao com a bd
             if (!empty($parametros)) {
                 $executar = $this->ligacao->prepare($sql);
-                $executar->execute($parametros);
+                
+                // Log para depuração
+                error_log("SQL preparado: " . $sql);
+                error_log("Parâmetros: " . print_r($parametros, true));
+                
+                // Verificar se os parâmetros são um array simples (sem chaves)
+                $param_posicional = is_array($parametros) && array_keys($parametros) === range(0, count($parametros) - 1);
+                
+                if ($param_posicional) {
+                    // Parâmetros posicionais (?)
+                    error_log("Usando parâmetros posicionais");
+                    $executar->execute($parametros);
+                } else {
+                    // Parâmetros nomeados (:param)
+                    error_log("Usando parâmetros nomeados");
+                    $executar->execute($parametros);
+                }
+                
                 $resultado = $executar->fetchAll(\PDO::FETCH_CLASS);
+                error_log("Número de registros retornados: " . count($resultado));
             } else {
+                error_log("Executando consulta sem parâmetros: " . $sql);
                 $executar = $this->ligacao->query($sql);
                 $executar->execute();
                 $resultado = $executar->fetchAll(\PDO::FETCH_CLASS);
+                error_log("Número de registros retornados: " . count($resultado));
             }
         } catch (\PDOException $e) {
             error_log("Erro na consulta SQL: " . $e->getMessage());
             error_log("SQL: " . $sql);
-            error_log("Parâmetros: " . print_r($parametros, true));
+            if (!empty($parametros)) {
+                error_log("Parâmetros: " . print_r($parametros, true));
+            }
             return false;
         }
         $this->desligar();

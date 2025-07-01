@@ -89,29 +89,40 @@ class Produtos {
             $campos_imagem = "";
         }
 
-        // Atualizar o produto
-        $db->update("
-            UPDATE produtos 
-            SET nome = :nome,
-                descricao = :descricao,
-                preco = :preco,
-                stock = :stock,
-                id_categoria = :id_categoria
-                $campos_imagem
-            WHERE id_produto = :id
-        ", $params);
+        try {
+            // Atualizar o produto
+            return $db->update("
+                UPDATE produtos 
+                SET nome = :nome,
+                    descricao = :descricao,
+                    preco = :preco,
+                    stock = :stock,
+                    id_categoria = :id_categoria,
+                    updated_at = NOW()
+                    $campos_imagem
+                WHERE id_produto = :id
+            ", $params);
+        } catch (\Exception $e) {
+            error_log("Erro ao atualizar produto (ID: $id_produto): " . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function eliminar_produto($id_produto) {
         $db = new Database();
         $params = [':id' => $id_produto];
         
-        // Soft delete
-        $db->update("
-            UPDATE produtos 
-            SET deleted_at = NOW()
-            WHERE id_produto = :id
-        ", $params);
+        try {
+            // Soft delete
+            return $db->update("
+                UPDATE produtos 
+                SET deleted_at = NOW()
+                WHERE id_produto = :id
+            ", $params);
+        } catch (\Exception $e) {
+            error_log("Erro ao eliminar produto (ID: $id_produto): " . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function produtos_por_categoria($id_categoria) {

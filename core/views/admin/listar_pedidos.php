@@ -1,4 +1,11 @@
 <?php
+use core\classes\store;
+
+if (!Store::adminLogado()) {
+    Store::redirect('admin_login', true);
+    return;
+}
+
 // Verificar se existe mensagem de erro ou sucesso
 if (isset($_SESSION['erro'])) {
     echo '<div class="alert alert-danger mt-3">' . $_SESSION['erro'] . '</div>';
@@ -9,87 +16,86 @@ if (isset($_SESSION['sucesso'])) {
     echo '<div class="alert alert-success mt-3">' . $_SESSION['sucesso'] . '</div>';
     unset($_SESSION['sucesso']);
 }
+
+// Depuração para verificar se os pedidos estão chegando na view
+echo "<!-- Depuração: Número de pedidos: " . (isset($pedidos) ? count($pedidos) : 'variável não definida') . " -->";
+if (isset($pedidos) && !empty($pedidos)) {
+    echo "<!-- Primeiro pedido: " . json_encode($pedidos[0]) . " -->";
+}
 ?>
 
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center pb-0">
-                    <h4 class="mb-0">Gestão de Pedidos</h4>
-                </div>
-                <div class="card-body px-0 pt-0 pb-2">
-                    <!-- Formulário de pesquisa -->
-                    <div class="px-4 pt-4">
-                        <form action="?a=listar_pedidos" method="GET" class="row align-items-center">
-                            <input type="hidden" name="a" value="listar_pedidos">
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <input type="text" name="pesquisa" class="form-control" placeholder="Pesquisar por nome do cliente..." value="<?= isset($pesquisa) ? $pesquisa : '' ?>">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-search"></i> Pesquisar
-                                    </button>
-                                </div>
-                            </div>
-                            <?php if (!empty($pesquisa)): ?>
-                            <div class="col-md-2">
-                                <a href="?a=listar_pedidos" class="btn btn-secondary">
-                                    <i class="fas fa-times"></i> Limpar
-                                </a>
-                            </div>
-                            <?php endif; ?>
-                        </form>
-                    </div>
-
-                    <!-- Tabela de pedidos com DataTables -->
-                    <div class="table-responsive p-4">
-                        <?php if (empty($pedidos)): ?>
-                            <div class="alert alert-info">
-                                <?= !empty($pesquisa) ? 'Nenhum pedido encontrado para o cliente "' . $pesquisa . '".' : 'Nenhum pedido registrado.' ?>
-                            </div>
-                        <?php else: ?>
-                            <table id="tabelaPedidos" class="table table-striped table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Nº Pedido</th>
-                                        <th>ID Cliente</th>
-                                        <th>Nome Cliente</th>
-                                        <th>Morada</th>
-                                        <th>Faturação</th>
-                                        <th>Status</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($pedidos as $pedido): ?>
-                                        <tr>
-                                            <td><?= $pedido->codigo_pedido ?></td>
-                                            <td><?= $pedido->id_cliente ?></td>
-                                            <td><?= $pedido->nome ?></td>
-                                            <td><?= $pedido->endereco ?>, <?= $pedido->cidade ?></td>
-                                            <td><?= number_format($pedido->total, 2, ',', '.') ?> €</td>
-                                            <td>
-                                                <span class="badge bg-<?= $this->getStatusColor($pedido->status) ?>">
-                                                    <?= ucfirst($pedido->status) ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <a href="?a=visualizar_pedido&id=<?= $pedido->id_pedido ?>" class="btn btn-sm btn-info">
-                                                    <i class="fas fa-eye"></i> Detalhes
-                                                </a>
-                                                <button class="btn btn-sm btn-primary btn-status" data-id="<?= $pedido->id_pedido ?>" data-bs-toggle="modal" data-bs-target="#statusModal">
-                                                    <i class="fas fa-edit"></i> Status
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-shopping-cart me-2"></i>
+                Lista de Pedidos
+            </h5>
+            <a href="?a=listar_pedidos" class="btn btn-primary">
+                <i class="fas fa-sync me-2"></i>
+                Atualizar
+            </a>
         </div>
+    </div>
+    <div class="card-body">
+        <?php if (count($pedidos) == 0) : ?>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Não existem pedidos cadastrados.
+            </div>
+        <?php else : ?>
+            <div class="table-responsive">
+                <table class="table table-hover" id="tabelaPedidos">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Código</th>
+                            <th>Cliente</th>
+                            <th>Data</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($pedidos as $pedido) : ?>
+                            <tr>
+                                <td><?= $pedido->id_pedido ?></td>
+                                <td><?= $pedido->codigo_pedido ?></td>
+                                <td>
+                                    <?php if (!empty($pedido->nome_completo)) : ?>
+                                        <?= $pedido->nome_completo ?>
+                                    <?php else : ?>
+                                        Cliente #<?= $pedido->id_cliente ?>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?= date('d/m/Y H:i', strtotime($pedido->data_pedido)) ?></td>
+                                <td><?= number_format($pedido->total, 2, ',', '.') ?> €</td>
+                                <td>
+                                    <span class="badge bg-<?= $this->getStatusColor($pedido->status) ?>">
+                                        <?= ucfirst($pedido->status) ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="?a=visualizar_pedido&id=<?= $pedido->id_pedido ?>" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-primary btn-status" 
+                                                data-id="<?= $pedido->id_pedido ?>" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#statusModal">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -132,8 +138,8 @@ document.addEventListener('DOMContentLoaded', function() {
             "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Portuguese-Brasil.json"
         },
         "pageLength": 10,
-        "responsive": true,
-        "order": [[ 0, "desc" ]] // Ordenar pela primeira coluna (código de pedido) em ordem descendente
+        "lengthMenu": [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
+        "order": [[ 0, "desc" ]] // Ordenar pelo ID em ordem descendente
     });
 
     // Botão para abrir modal de status
@@ -164,10 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Fechar modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('statusModal'));
-                modal.hide();
-                
                 // Recarregar página para mostrar as alterações
                 location.reload();
             } else {
@@ -180,4 +182,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-</script> 
+</script>
+
+<?php if (isset($_SESSION['erro'])) : ?>
+    <script>
+        mostrarErro('<?= $_SESSION['erro'] ?>');
+    </script>
+    <?php unset($_SESSION['erro']); ?>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['sucesso'])) : ?>
+    <script>
+        mostrarSucesso('<?= $_SESSION['sucesso'] ?>');
+    </script>
+    <?php unset($_SESSION['sucesso']); ?>
+<?php endif; ?> 

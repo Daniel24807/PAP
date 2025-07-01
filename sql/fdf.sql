@@ -117,15 +117,6 @@ CREATE TABLE IF NOT EXISTS `pedidos` (
   CONSTRAINT `FK_pedidos_clientes` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- A despejar dados para tabela php_store.pedidos: ~6 rows (aproximadamente)
-INSERT INTO `pedidos` (`id_pedido`, `id_cliente`, `codigo_pedido`, `status`, `endereco`, `cidade`, `codigo_postal`, `telefone`, `metodo_pagamento`, `total`, `data_pedido`) VALUES
-	(1, 11, 'ABC12345', 'pendente', 'Rua da Oliveira', 'Olhão', '8700-123', '939495969', 'cartão', 299.99, '2025-06-25 17:35:08'),
-	(2, 14, 'DEF67890', 'processando', 'Rua Exemplo, 123', 'Cidade Exemplo', '1000-123', '999999999', 'paypal', 450.00, '2025-06-22 17:35:08'),
-	(4, 15, 'JKL24680', 'cancelado', 'Rua da Cerca', 'Olhão', '8700-456', '963228574', 'cartão', 599.98, '2025-06-26 17:35:08'),
-	(5, 15, 'BHJ5XJTW', 'cancelado', 'qwert', 'Olhao', '1233', '963228574', 'transferencia', 10.95, '2025-06-27 18:13:34'),
-	(6, 15, 'GHI751PW', 'cancelado', 'qwert', 'Olhao', '1233', '963228574', 'transferencia', 69.60, '2025-06-27 18:29:27'),
-	(7, 15, 'D94UCFIB', 'pendente', 'qwert', 'Olhao', 'SADAS', '963228574', 'transferencia', 14.90, '2025-06-27 21:19:32');
-
 -- A despejar estrutura para tabela php_store.pedido_itens
 CREATE TABLE IF NOT EXISTS `pedido_itens` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
